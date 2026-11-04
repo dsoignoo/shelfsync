@@ -1,214 +1,170 @@
-# ShelfSync
+# ShelfSync — Codex + AssemblyAI
 
-**Sync your audiobook and eBook positions** — like WhisperSync, but self-hosted for [Audiobookshelf](https://www.audiobookshelf.org/).
+Self-hosted audiobook/eBook position matching for [Audiobookshelf](https://www.audiobookshelf.org/). This is a fork of [tobiasredel/shelfsync](https://github.com/tobiasredel/shelfsync).
 
-ShelfSync connects to your Audiobookshelf instance and uses the EPUB file of each audiobook to map between audio timestamps and text positions. Know exactly which Kindle page matches your current listening position — and vice versa.
+**No OpenAI API key is required.** Recaps and book-photo OCR run through the official Codex CLI using your ChatGPT subscription login. Audio calibration uses AssemblyAI's pre-recorded transcription API.
 
 ## Features
 
-### Position Sync (Primary)
-- **Audio → Page**: See which Kindle page/percentage matches your current audiobook position
-- **Page → Audio**: Enter a Kindle page number and jump to the corresponding audio timestamp
-- **Text → Audio**: Enter a passage from your Kindle and find where it is in the audiobook
-- **Kindle Calibration**: Set your total Kindle pages or calibrate with your current page for device-accurate mapping
-- **Whisper Auto-Sync**: One-time per book — transcribes short audio segments via OpenAI Whisper to create high-accuracy anchor points (~$0.02/book)
+- **Audio → page / page → audio:** estimate the corresponding reading or listening position.
+- **Text → audio:** find a passage in the EPUB and jump to it in Audiobookshelf.
+- **Photo OCR:** extract a readable paragraph from a Kindle/book photo with Codex image input.
+- **Recaps:** summarize a missed section from EPUB text, in concise, detailed, or bullet style.
+- **Audio-Sync:** extract short audio clips with ffmpeg, transcribe them with AssemblyAI, match them to the EPUB, and persist calibration anchors.
+- **Kindle calibration:** save your page count and calibration points.
+- **Currently reading:** pin books for quick access from the mobile-friendly interface.
 
-### Find & Jump
-- **Text Search**: Type any passage and find the exact audio position
-- **OCR**: Take a photo of your Kindle page, extract text via vision API, and find the audio position
-- **Sync to Audiobookshelf**: Jump the ABS player to any found position with one tap
-
-### Recap (Bonus)
-- **Summarize missed segments**: Fell asleep? Select a time range and get a GPT summary of what happened
-- **Multiple styles**: Concise, detailed, or bullet points
-- **Cost-efficient**: Uses EPUB text instead of Whisper transcription — ~$0.005 per recap (~14x cheaper)
-
-### General
-- **Currently Reading**: Pin a book as hero card for instant access
-- **Mobile-first PWA**: Dark theme, bottom sheet UI, touch-optimized — designed for bedside use
-- **Self-hosted**: Runs on Docker, targeted at Synology NAS and similar home servers
-
-## How It Works
-
-```
-┌──────────────────────────────┐
-│  ShelfSync (Browser PWA)     │
-└──────────────┬───────────────┘
-               │ HTTP/JSON
-┌──────────────▼───────────────┐
-│  FastAPI Backend (app.py)    │
-│  - Position mapping          │
-│  - Text search               │
-│  - EPUB parsing              │
-│  - Calibration management    │
-└──────┬──────────┬────────────┘
-       │          │
-       ▼          ▼
-  Audiobookshelf  OpenAI API
-  (Library +      (GPT-4o-mini for
-   EPUB files)     recaps + OCR)
-```
-
-1. Connects to your **Audiobookshelf** instance via API
-2. Downloads and parses the **EPUB** file for each audiobook
-3. Maps audio chapter markers to EPUB chapters using fuzzy title matching, boundary alignment, or WPM estimation
-4. Interpolates between anchor points to convert any audio timestamp ↔ text position
-5. Optional: **Whisper Auto-Sync** creates high-precision anchor points by transcribing short audio samples
+Without provider credentials, basic position estimation, text search, and manual calibration still work. Precise alignment requires a matching audiobook/EPUB edition and good audio anchors. Before Audio-Sync, position estimates are proportional; the UI marks them as unsynced.
 
 ## Prerequisites
 
-- **Docker** (on Synology NAS, Raspberry Pi, or any server)
-- **Audiobookshelf** with audiobooks that have matching EPUB files
-- **OpenAI API Key** — [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-- **Audiobookshelf API Token** — Settings → Users → your user → API Token
+- Docker with Compose, or Python 3.12+ and ffmpeg for a local installation.
+- Audiobookshelf URL and API token.
+- A matching, DRM-free EPUB attached to the audiobook in Audiobookshelf.
+- A ChatGPT plan with Codex access, signed in through **ChatGPT**, not an API key.
+- An [AssemblyAI API key](https://www.assemblyai.com/dashboard) for Audio-Sync.
 
-### EPUB + Audiobook Setup in Audiobookshelf
+For Audiobookshelf, place the EPUB beside the audio files and rescan the book:
 
-The EPUB file must be in the same folder as the audio files:
-
-```
-/audiobooks/
-  Author Name/
-    Book Title/
-      chapter01.mp3
-      chapter02.mp3
-      booktitle.epub       ← this file
-      cover.jpg
+```text
+/audiobooks/Author/Book/
+  chapter01.mp3
+  chapter02.mp3
+  book.epub
+  cover.jpg
 ```
 
-Audiobookshelf will automatically detect the EPUB and show it as an eBook option.
-
-## Installation
-
-### Docker Compose (Recommended)
+## Docker setup
 
 ```bash
-mkdir -p shelfsync && cd shelfsync
+git clone https://github.com/dsoignoo/shelfsync.git
+cd shelfsync
+cp .env.example .env
+```
 
-# Create docker-compose.yml (see below) and configure your values
+Edit `.env`: set `AUDIOBOOKSHELF_URL`, `AUDIOBOOKSHELF_TOKEN`, and `ASSEMBLYAI_API_KEY`. Set `SUMMARY_LANGUAGE=en` or `de`.
+
+```bash
+docker compose build
+
+# Follow the displayed link/code to sign in with your ChatGPT account.
+docker compose run --rm shelfsync codex login --device-auth
+docker compose run --rm shelfsync codex login status
+
+# The status must say "Logged in using ChatGPT".
 docker compose up -d
 ```
 
-**docker-compose.yml:**
+Open <http://localhost:8765>. The provided Compose file binds only to loopback. For remote access, use an authenticated HTTPS reverse proxy or a private tunnel; do not publish the app unauthenticated. `AUTH_USER` and `AUTH_PASS` enable built-in Basic auth. `/api/health` remains unauthenticated.
 
-```yaml
-services:
-  shelfsync:
-    image: ghcr.io/tobiasredel/shelfsync:latest
-    container_name: shelfsync
-    restart: unless-stopped
-    ports:
-      - "8765:8765"
-    volumes:
-      - ./data:/data
-    environment:
-      - AUDIOBOOKSHELF_URL=http://your-nas-ip:13378
-      - AUDIOBOOKSHELF_TOKEN=your-abs-api-token
-      - OPENAI_API_KEY=sk-your-openai-key
-      # Optional:
-      - LLM_MODEL=gpt-4o-mini
-      - SUMMARY_LANGUAGE=de
-```
+The image includes **Codex CLI 0.160.1** and ffmpeg, and runs as UID 1000. Compose uses two named volumes:
 
-Then open: `http://your-server:8765`
+- `shelfsync-data`: calibration, currently-reading state, and EPUB cache.
+- `codex-home`: Codex login and refreshed credentials, writable by the application user.
 
-### Build from Source
+Keep the login volume private. Do not commit, publish, or share its `auth.json`, and do not mount your entire personal home directory. Log in once per instance. Use one application worker and one instance per credential directory: Codex calls are serialized in-process to avoid concurrent token refreshes.
+
+If device login is unavailable, enable device-code authentication in your ChatGPT account settings or use the official [headless login guidance](https://developers.openai.com/codex/auth/). The CLI manages token refresh; ShelfSync never extracts subscription tokens or sends them to OpenAI's public API. Subscription limits still apply.
+
+GitHub Actions builds `ghcr.io/dsoignoo/shelfsync:latest` for amd64 and arm64 after pushes to `main`. Source builds do not depend on registry access.
+
+## Local setup
+
+Install Codex CLI 0.160.1 and ffmpeg, then:
 
 ```bash
-git clone https://github.com/tobiasredel/shelfsync.git
-cd shelfsync
-docker compose up -d --build
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+codex login
+codex login status
+
+# Export your .env settings into this shell; uvicorn can load them below.
+DATA_DIR="$PWD/data" .venv/bin/uvicorn app:app --env-file .env --host 127.0.0.1 --port 8765
 ```
+
+Codex uses `CODEX_HOME`, or `~/.codex` when unset. Use a dedicated login directory if another application is also running Codex against your personal credential store.
 
 ## Configuration
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `AUDIOBOOKSHELF_URL` | Yes | `http://localhost:13378` | URL of your Audiobookshelf instance |
-| `AUDIOBOOKSHELF_TOKEN` | Yes | — | Audiobookshelf API bearer token |
-| `OPENAI_API_KEY` | Yes | — | OpenAI API key (for recaps, OCR, and Whisper sync) |
-| `LLM_MODEL` | No | `gpt-4o-mini` | OpenAI model for summaries |
-| `SUMMARY_LANGUAGE` | No | `de` | Summary language (`de`, `en`, etc.) |
-| `DATA_DIR` | No | `/data` | Path for persistent data (calibration, cache) |
-| `EPUB_MAX_SIZE_MB` | No | `100` | Maximum EPUB download size in MB |
-| `AUTH_USER` | No | — | Basic auth username (leave empty to disable) |
-| `AUTH_PASS` | No | — | Basic auth password |
+| Variable | Default | Purpose |
+|---|---|---|
+| `AUDIOBOOKSHELF_URL` | `http://localhost:13378` (Compose: `http://audiobookshelf:13378`) | Reachable Audiobookshelf origin |
+| `AUDIOBOOKSHELF_TOKEN` | empty | Audiobookshelf API bearer token |
+| `ASSEMBLYAI_API_KEY` | empty | Required only for Audio-Sync |
+| `ASSEMBLYAI_BASE_URL` | `https://api.assemblyai.com` | Use `https://api.eu.assemblyai.com` for EU processing |
+| `ASSEMBLYAI_TIMEOUT_SECONDS` | `180` | Deadline for each clip's upload, submission, and polling |
+| `CODEX_HOME` | `~/.codex` (image: `/home/shelfsync/.codex`) | Writable Codex credential/state directory |
+| `CODEX_MODEL` | empty | Codex CLI default; optionally select a vision-capable model available on your subscription |
+| `CODEX_TIMEOUT_SECONDS` | `180` | Deadline per Codex call, including queue time |
+| `SUMMARY_LANGUAGE` | `de` | Recap language (`de` or `en`) |
+| `DATA_DIR` | `/data` | Calibration and cache directory |
+| `EPUB_MAX_SIZE_MB` | `100` | EPUB download size limit |
+| `AUTH_USER`, `AUTH_PASS` | empty | Set both for Basic authentication |
+
+`OPENAI_API_KEY` and `LLM_MODEL` are not used. The OpenAI Python SDK has been removed; there is no API-key fallback.
 
 ## Usage
 
-1. **Open ShelfSync** in your browser
-2. **Select a book** from the library — it's added as "Currently Reading"
-3. **Position tab** (default): See your current Kindle page and percentage based on your ABS listening progress
-4. **Calibrate** (optional): Enter your total Kindle pages for accurate page numbers
-5. **Find tab**: Enter text or a page number from your Kindle to find the audio position
-6. **Recap tab**: Select a time range to summarize what you missed
+1. Open the library, add a book to Currently Reading, then open its card.
+2. In **Position**, enter your Kindle page count if desired.
+3. In **Audio-Sync**, select the book's language and start calibration. German, English, French, and Spanish are offered. This uses AssemblyAI Universal-2, uploads only extracted clips, and stores matched anchors locally.
+4. In **Finden**, enter a passage, a page number, or upload a JPEG/PNG/WEBP book-page photo.
+5. In **Recap**, select up to 120 minutes and choose a summary style. Long excerpts are split into bounded chunks, summarized sequentially, and merged.
 
-### Whisper Auto-Sync (Optional)
+Audio-Sync polls queued/processing jobs until completion. Provider failures and timeouts are errors, not successful empty calibrations. If recalibration fails or no clips match, existing anchors are preserved. The UI reports subscription usage rather than estimating OpenAI API charges.
 
-For the most accurate position mapping:
-1. Open the **Position tab** for your book
-2. Scroll to the **Whisper-Sync** section
-3. Select the book's language and click **Auto-Sync starten**
-4. ShelfSync transcribes ~10 short audio segments and matches them to the EPUB
-5. This creates high-precision anchor points — costs ~$0.02 per book, one-time
+## Costs and data handling
 
-## Costs
-
-| Feature | Cost | Notes |
+| Feature | Provider / billing | Data sent |
 |---|---|---|
-| Position Sync | Free | No API calls needed |
-| Recap (GPT-4o-mini) | ~$0.005 / recap | Uses EPUB text, not audio transcription |
-| Whisper Auto-Sync | ~$0.02 / book | One-time calibration |
-| OCR (Vision API) | ~$0.01 / photo | Kindle page text extraction |
+| Position, manual calibration, text search | No AI provider calls | Audiobookshelf requests only |
+| Recaps | Codex subscription allowance | Selected EPUB excerpt |
+| Photo OCR | Codex subscription allowance | Uploaded photo |
+| Audio-Sync | Your AssemblyAI account; current plan/rates apply | Extracted audio clips |
 
-**Estimated monthly cost: ~$0.50–1.00** with daily use.
+Codex requests use an ephemeral directory and stdin for source text. User config, project instructions, hooks, and execution/search capabilities are disabled; the read-only sandbox is retained. Temporary text/image/output files are removed on completion, failure, timeout, or cancellation. No sandbox bypass or privileged container is required by the integration. Host restrictions can still prevent sandbox operation: do not work around failures by granting unrestricted execution.
 
-## Tech Stack
+## API
 
-| Component | Technology |
-|---|---|
-| Backend | Python 3.12, FastAPI, uvicorn |
-| HTTP Client | httpx (async) |
-| EPUB Parsing | Python stdlib (zipfile + xml.etree) |
-| LLM | OpenAI API (GPT-4o-mini default) |
-| Frontend | Vanilla HTML/CSS/JS (single file, no build step) |
-| Deployment | Docker, multi-arch (amd64 + arm64) |
-
-## API Reference
-
-| Endpoint | Method | Description |
+| Endpoint | Method | Purpose |
 |---|---|---|
-| `/api/books` | GET | List all library items |
-| `/api/books/{id}/details` | GET | Book details with EPUB/calibration status |
-| `/api/position` | POST | Audio time → Kindle page/percentage |
-| `/api/find-text` | POST | Text query → audio timestamp |
-| `/api/page-to-audio` | POST | Kindle page → audio timestamp |
-| `/api/recap` | POST | Time range → GPT summary |
-| `/api/sync-progress` | POST | Update ABS listening position |
-| `/api/whisper-sync/{id}` | POST | Start Whisper auto-calibration |
-| `/api/calibrate/*` | POST | Manual calibration endpoints |
+| `/api/books` | GET | Library items |
+| `/api/books/{id}/details` | GET | EPUB and calibration status |
+| `/api/position` | POST | Audio timestamp → page estimate |
+| `/api/find-text` | POST | Passage → audio timestamp |
+| `/api/page-to-audio` | POST | Page → audio timestamp |
+| `/api/recap` | POST | EPUB excerpt → Codex summary (`provider: "codex"`) |
+| `/api/ocr` | POST | Base64 JPEG/PNG/WEBP → text via Codex |
+| `/api/audio-sync/{id}` | POST / DELETE | Create / remove audio calibration |
+| `/api/calibration/{id}` | GET / DELETE | Calibration status / reset |
+| `/api/chapter-mapping/{id}` | GET | Audio anchors and mapping quality |
+| `/api/books/{id}/kindle-pages` | GET / PUT | Kindle page count and saved points |
+| `/api/books/{id}/kindle-calibrate` | POST / DELETE | Manual Kindle calibration |
+| `/api/sync-progress` | POST | Update Audiobookshelf listening position |
 | `/api/health` | GET | Health check |
 
-## Mapping Quality
+This fork makes a clean provider cutover: upstream `/api/whisper-sync` clients must use `/api/audio-sync`; persisted anchors use `audio_anchors` and `transcript_text`. Existing upstream Whisper anchors are not imported automatically—back up your old data and rerun Audio-Sync. Other page-count/calibration data can be retained in the data volume. Recap responses use `provider` instead of the old API-price estimate.
 
-ShelfSync uses a cascade of strategies to map audio timestamps to text positions:
+## Verification and troubleshooting
 
-1. **Whisper anchors** — Highest accuracy (if auto-sync was run)
-2. **Chapter title matching** — Fuzzy matching of audio and EPUB chapter names
-3. **Boundary alignment** — Matches chapters by relative position in the book
-4. **WPM estimation** — Estimates narration speed for proportional mapping
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+```
 
-Quality indicator badges in the UI show which strategy is active for each book.
+Tests cover provider deadlines/cancellation, failure handling, credential isolation, partial-output rejection, and preservation of previous calibration. Live AssemblyAI verification requires your own key; simulated API tests do not prove account access.
 
-## Troubleshooting
-
-| Problem | Solution |
+| Problem | Check |
 |---|---|
-| "No EPUB found" | Place the EPUB in the same folder as audio files in Audiobookshelf |
-| "Could not extract text" | Some EPUBs have unusual structure; DRM-protected EPUBs won't work |
-| Position seems off | Calibrate with your Kindle page count, or run Whisper Auto-Sync |
-| Connection error | Verify `AUDIOBOOKSHELF_URL` is reachable from the Docker container |
+| Codex failed / login expired | Run `docker compose run --rm shelfsync codex login status`; re-login with ChatGPT if needed |
+| Codex model unavailable | Leave `CODEX_MODEL` empty or select a model available to your plan |
+| Codex timed out | Shorten the excerpt or increase `CODEX_TIMEOUT_SECONDS`; queued calls share the deadline |
+| Sandbox failure | Check the host's sandbox/user-namespace restrictions; never disable sandboxing or use privileged mode |
+| AssemblyAI 401/403 | Check the key and account/project permissions |
+| AssemblyAI timeout | Check service availability or increase `ASSEMBLYAI_TIMEOUT_SECONDS` |
+| No audio/EPUB matches | Check the selected language and audiobook/EPUB edition |
+| No EPUB found | Attach a DRM-free EPUB to the audiobook and rescan |
+| Connection error | Ensure the Audiobookshelf URL is reachable from inside the container |
 
 ## License
 
-MIT
+MIT (upstream project).

@@ -1,22 +1,28 @@
 services:
   shelfsync:
-    image: ghcr.io/tobiasredel/shelfsync:latest
+    image: ghcr.io/dsoignoo/shelfsync:latest
     build: .
     container_name: shelfsync
     restart: unless-stopped
     ports:
-      - "8765:8765"
+      - "127.0.0.1:8765:8765"
     volumes:
-      - ./data:/data   # calibration data persists here
+      - shelfsync-data:/data
+      - codex-home:/home/shelfsync/.codex
     environment:
-      # --- REQUIRED ---
-      - AUDIOBOOKSHELF_URL=http://audiobookshelf:13378  # or your ABS LAN IP
-      - AUDIOBOOKSHELF_TOKEN=your-abs-api-token-here
-      - OPENAI_API_KEY=your-openai-api-key-here
-      # --- OPTIONAL ---
-      - LLM_MODEL=gpt-4o-mini
-      - SUMMARY_LANGUAGE=de
-      - DATA_DIR=/data
-    # If ABS runs in another docker network:
+      AUDIOBOOKSHELF_URL: ${AUDIOBOOKSHELF_URL:-http://audiobookshelf:13378}
+      AUDIOBOOKSHELF_TOKEN: ${AUDIOBOOKSHELF_TOKEN:-}
+      ASSEMBLYAI_API_KEY: ${ASSEMBLYAI_API_KEY:-}
+      ASSEMBLYAI_BASE_URL: ${ASSEMBLYAI_BASE_URL:-https://api.assemblyai.com}
+      ASSEMBLYAI_TIMEOUT_SECONDS: ${ASSEMBLYAI_TIMEOUT_SECONDS:-180}
+      CODEX_MODEL: ${CODEX_MODEL:-}
+      CODEX_TIMEOUT_SECONDS: ${CODEX_TIMEOUT_SECONDS:-180}
+      SUMMARY_LANGUAGE: ${SUMMARY_LANGUAGE:-de}
+      AUTH_USER: ${AUTH_USER:-}
+      AUTH_PASS: ${AUTH_PASS:-}
     # networks:
     #   - audiobookshelf_default
+
+volumes:
+  shelfsync-data:
+  codex-home:

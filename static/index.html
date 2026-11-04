@@ -183,7 +183,7 @@
         .pos-nearby{font-size:.75rem;color:var(--text-muted);margin-top:.5rem;font-style:italic;line-height:1.5;background:var(--bg);padding:.5rem .7rem;border-radius:var(--radius-sm);max-height:60px;overflow:hidden}
         .pos-cal-status{font-size:.68rem;margin-top:.5rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
 
-        /* Whisper-Sync panel */
+        /* Audio-Sync panel */
         .cal-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1rem}
         .cal-panel.visible{display:block}
         .cal-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;flex-wrap:wrap}
@@ -201,8 +201,8 @@
         }
         .cal-btn:active{opacity:.85;transform:scale(.97)}
         .cal-btn.danger{background:var(--danger)}
-        .whisper-edit-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-muted);cursor:pointer;font-size:.9rem;padding:.25rem .5rem;min-height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;transition:all .15s}
-        .whisper-edit-btn:hover{color:var(--text);border-color:var(--text-muted)}
+        .audio-edit-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-muted);cursor:pointer;font-size:.9rem;padding:.25rem .5rem;min-height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+        .audio-edit-btn:hover{color:var(--text);border-color:var(--text-muted)}
         .cal-result{font-size:.8rem;color:var(--green);margin-top:.5rem;display:none}
         .cal-result.visible{display:block}
 
@@ -465,37 +465,37 @@
                 </div>
             </div>
 
-            <!-- Whisper-Sync -->
+            <!-- Audio-Sync -->
             <div class="cal-panel" id="calPanel">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
-                    <div class="sl" style="margin-bottom:0">Whisper-Sync</div>
-                    <button class="whisper-edit-btn" id="whisperEditBtn" onclick="toggleWhisperConfig()" style="display:none" title="Konfiguration bearbeiten">&#9998;</button>
+                    <div class="sl" style="margin-bottom:0">Audio-Sync</div>
+                    <button class="audio-edit-btn" id="audioEditBtn" onclick="toggleAudioConfig()" style="display:none" title="Konfiguration bearbeiten">&#9998;</button>
                 </div>
-                <div id="whisperStatus" style="margin-bottom:.6rem"></div>
-                <div id="whisperConfig">
-                    <p class="cal-hint" style="margin-bottom:.6rem">Transkribiert kurze Audio-Segmente per Whisper und findet sie im EPUB-Text. Kosten: ~$0.02.</p>
+                <div id="audioStatus" style="margin-bottom:.6rem"></div>
+                <div id="audioConfig">
+                    <p class="cal-hint" style="margin-bottom:.6rem">Transkribiert kurze Audio-Segmente mit AssemblyAI und findet sie im EPUB-Text. Abrechnung über dein AssemblyAI-Konto.</p>
                     <div class="cal-row" style="gap:.4rem;flex-wrap:wrap">
-                        <select class="cal-input" id="whisperLang" style="width:auto">
+                        <select class="cal-input" id="audioLang" style="width:auto">
                             <option value="de">Deutsch</option>
                             <option value="en">English</option>
                             <option value="fr">Français</option>
                             <option value="es">Español</option>
                         </select>
-                        <input type="number" class="cal-input" id="whisperSamples" value="10" min="3" max="20" style="width:60px" title="Anzahl Samples">
+                        <input type="number" class="cal-input" id="audioSamples" value="10" min="3" max="20" style="width:60px" title="Anzahl Samples">
                         <span class="cal-hint">Samples</span>
-                        <button class="cal-btn" id="whisperStartBtn" onclick="startWhisperSync()">Auto-Sync starten</button>
-                        <button class="cal-btn danger" id="whisperDeleteBtn" onclick="deleteWhisperSync()" style="display:none">Löschen</button>
+                        <button class="cal-btn" id="audioStartBtn" onclick="startAudioSync()">Auto-Sync starten</button>
+                        <button class="cal-btn danger" id="audioDeleteBtn" onclick="deleteAudioSync()" style="display:none">Löschen</button>
                     </div>
                 </div>
-                <div id="whisperProgress" style="display:none;margin-top:.6rem">
+                <div id="audioProgress" style="display:none;margin-top:.6rem">
                     <div style="display:flex;align-items:center;gap:.5rem">
                         <div class="status-dot checking"></div>
-                        <span id="whisperProgressText" style="font-size:.82rem;color:var(--text-muted)">Starte...</span>
+                        <span id="audioProgressText" style="font-size:.82rem;color:var(--text-muted)">Starte...</span>
                     </div>
                 </div>
-                <details id="whisperDetails" style="display:none;margin-top:.6rem">
+                <details id="audioDetails" style="display:none;margin-top:.6rem">
                     <summary style="cursor:pointer;font-size:.8rem;color:var(--text-muted);min-height:44px;display:flex;align-items:center">Ankerpunkte anzeigen</summary>
-                    <div id="whisperResult" style="margin-top:.4rem"></div>
+                    <div id="audioResult" style="margin-top:.4rem"></div>
                 </details>
                 <div class="cal-result" id="calRes"></div>
             </div>
@@ -804,9 +804,9 @@ async function loadPos(){
         $('#pPct').textContent=d.percentage+'%';
         $('#pChName').textContent=d.chapter_title?'📖 '+d.chapter_title:'';
         $('#pNear').textContent=d.nearby_text?'\u201E'+d.nearby_text+'\u201C':'';
-        $('#pCalStatus').innerHTML=d.mapping_quality==='whisper'
-            ?'<span class="badge badge-green">Whisper-Sync aktiv</span>'
-            :'<span class="badge" style="background:#c62828;color:#fff">Kein Whisper-Sync</span>';
+        $('#pCalStatus').innerHTML=d.mapping_quality==='audio'
+            ?'<span class="badge badge-green">Audio-Sync aktiv</span>'
+            :'<span class="badge" style="background:#c62828;color:#fff">Kein Audio-Sync</span>';
         $('#posBox').classList.add('visible');
         $('#pgTotal').textContent='von '+d.total_pages;
         // Load stored Kindle settings
@@ -864,7 +864,7 @@ async function calibrateKindle(){
 async function loadCal(){
     if(!sel)return;
     $('#calPanel').classList.add('visible');
-    loadWhisperStatus();
+    loadAudioStatus();
 }
 
 function sTab(n){$$('.tab').forEach((t,i)=>t.classList.toggle('active',['position','find','recap'][i]===n));$$('.tc').forEach(c=>c.classList.remove('active'));$('#t-'+n).classList.add('active')}
@@ -882,7 +882,7 @@ async function doRecap(){
         const r=await fetch('/api/recap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({library_item_id:sel.id,start_minutes:sm,end_minutes:em,summary_style:style})});
         clearInterval(iv);if(!r.ok){const e=await r.json().catch(()=>({detail:'Fehler'}));throw new Error(e.detail)}
         const d=await r.json();
-        $('#rSum').textContent=d.summary;$('#rTx').textContent=d.text_excerpt;$('#rCost').textContent='~$'+d.cost_estimate_usd.toFixed(4);
+        $('#rSum').textContent=d.summary;$('#rTx').textContent=d.text_excerpt;$('#rCost').textContent='Codex-Abo · Nutzungslimits gelten';
         $('#rCh').innerHTML=(d.chapters_covered||[]).map(c=>'<span class="rct">'+esc(c)+'</span>').join('');
         $('#rRes').classList.add('visible');
     }catch(e){clearInterval(iv);se('rErr',e.message)}
@@ -946,27 +946,27 @@ function tog(b,id){b.classList.toggle('open');$('#'+id).classList.toggle('visibl
 function se(id,m){const e=$('#'+id);e.textContent=m;e.classList.add('visible')}
 function he(id){$('#'+id).classList.remove('visible')}
 
-// --- Whisper Auto-Sync ---
-function toggleWhisperConfig(){
-    const cfg=$('#whisperConfig');
+// --- Audio Auto-Sync ---
+function toggleAudioConfig(){
+    const cfg=$('#audioConfig');
     const isHidden=cfg.style.display==='none';
     cfg.style.display=isHidden?'':'none';
-    $('#whisperEditBtn').textContent=isHidden?'\u2716':'\u270E';
-    $('#whisperEditBtn').title=isHidden?'Konfiguration schließen':'Konfiguration bearbeiten';
+    $('#audioEditBtn').textContent=isHidden?'\u2716':'\u270E';
+    $('#audioEditBtn').title=isHidden?'Konfiguration schließen':'Konfiguration bearbeiten';
 }
 
-async function loadWhisperStatus(){
+async function loadAudioStatus(){
     if(!sel)return;
-    const stEl=$('#whisperStatus'),rb=$('#whisperResult'),db=$('#whisperDeleteBtn'),det=$('#whisperDetails');
-    const btn=$('#whisperStartBtn'),cfg=$('#whisperConfig'),editBtn=$('#whisperEditBtn');
+    const stEl=$('#audioStatus'),rb=$('#audioResult'),db=$('#audioDeleteBtn'),det=$('#audioDetails');
+    const btn=$('#audioStartBtn'),cfg=$('#audioConfig'),editBtn=$('#audioEditBtn');
     stEl.innerHTML='';det.style.display='none';db.style.display='none';
     try{
         const r=await fetch('/api/chapter-mapping/'+sel.id);
         if(!r.ok)return;
         const d=await r.json();
-        const wa=d.whisper_anchor_points||[];
+        const wa=d.audio_anchor_points||[];
         if(wa.length>0){
-            stEl.innerHTML='<span class="badge badge-green">Whisper-Sync aktiv</span> <span class="cal-hint">'+wa.length+' Ankerpunkte</span>';
+            stEl.innerHTML='<span class="badge badge-green">Audio-Sync aktiv</span> <span class="cal-hint">'+wa.length+' Ankerpunkte</span>';
             db.style.display='';
             btn.textContent='Neu starten';
             cfg.style.display='none';
@@ -977,12 +977,12 @@ async function loadWhisperStatus(){
             wa.forEach(a=>{
                 const min=Math.floor(a.audio_seconds/60),sec=Math.round(a.audio_seconds%60);
                 const conf=a.confidence>=0.7?'badge-green':a.confidence>=0.5?'badge-amber':'';
-                html+='<tr style="border-bottom:1px solid var(--border)"><td style="padding:.2rem .4rem">'+min+':'+String(sec).padStart(2,'0')+'</td><td style="padding:.2rem .4rem"><span class="badge '+conf+'">'+(a.confidence*100).toFixed(0)+'%</span></td><td style="padding:.2rem .4rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(a.whisper_text||'').replace(/"/g,'&quot;')+'">'+(a.whisper_text||'')+'</td></tr>';
+                html+='<tr style="border-bottom:1px solid var(--border)"><td style="padding:.2rem .4rem">'+min+':'+String(sec).padStart(2,'0')+'</td><td style="padding:.2rem .4rem"><span class="badge '+conf+'">'+(a.confidence*100).toFixed(0)+'%</span></td><td style="padding:.2rem .4rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a.transcript_text||'')+'</td></tr>';
             });
             html+='</table></div>';
             rb.innerHTML=html;det.style.display='';
         }else{
-            stEl.innerHTML='<span class="cal-hint">Noch kein Whisper-Sync durchgeführt.</span>';
+            stEl.innerHTML='<span class="cal-hint">Noch kein Audio-Sync durchgeführt.</span>';
             btn.textContent='Auto-Sync starten';
             cfg.style.display='';
             editBtn.style.display='none';
@@ -990,37 +990,43 @@ async function loadWhisperStatus(){
     }catch(e){}
 }
 
-async function startWhisperSync(){
+async function startAudioSync(){
     if(!sel)return;
-    const btn=$('#whisperStartBtn'),prog=$('#whisperProgress'),pt=$('#whisperProgressText'),det=$('#whisperDetails');
+    const btn=$('#audioStartBtn'),prog=$('#audioProgress'),pt=$('#audioProgressText'),det=$('#audioDetails');
     btn.disabled=true;prog.style.display='';det.style.display='none';
     pt.textContent='Segmente werden transkribiert...';
     try{
-        const r=await fetch('/api/whisper-sync/'+sel.id,{
+        const r=await fetch('/api/audio-sync/'+sel.id,{
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({
-                n_samples:parseInt($('#whisperSamples').value)||10,
-                language:$('#whisperLang').value||'de',
+                n_samples:parseInt($('#audioSamples').value)||10,
+                language:$('#audioLang').value||'de',
                 force:true,
             })
         });
         const d=await r.json();
         prog.style.display='none';
         if(!r.ok){
-            $('#whisperStatus').innerHTML='<span class="badge" style="background:#c0392b;color:#fff">Fehler: '+(d.detail||'Unbekannt')+'</span>';
+            $('#audioStatus').textContent='Fehler: '+(d.detail||'Unbekannt');
             return;
         }
-        loadWhisperStatus();loadPos();
+        if(detailsCache[sel.id])delete detailsCache[sel.id].position;
+        loadAudioStatus();loadPos();
     }catch(e){
         prog.style.display='none';
-        $('#whisperStatus').innerHTML='<span class="badge" style="background:#c0392b;color:#fff">Netzwerk-Fehler</span>';
+        $('#audioStatus').innerHTML='<span class="badge" style="background:#c0392b;color:#fff">Netzwerk-Fehler</span>';
     }finally{btn.disabled=false}
 }
 
-async function deleteWhisperSync(){
-    if(!sel||!confirm('Whisper-Ankerpunkte löschen?'))return;
-    try{await fetch('/api/whisper-sync/'+sel.id,{method:'DELETE'});loadWhisperStatus();loadPos()}catch(e){}
+async function deleteAudioSync(){
+    if(!sel||!confirm('Audio-Ankerpunkte löschen?'))return;
+    try{
+        const r=await fetch('/api/audio-sync/'+sel.id,{method:'DELETE'});
+        if(!r.ok)throw new Error('Löschen fehlgeschlagen');
+        if(detailsCache[sel.id])delete detailsCache[sel.id].position;
+        loadAudioStatus();loadPos();
+    }catch(e){$('#audioStatus').textContent=e.message}
 }
 
 // Swipe down to close sheet
