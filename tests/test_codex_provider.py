@@ -16,7 +16,7 @@ class CodexBoundaryTests(unittest.TestCase):
             "OPENAI_API_KEY": "secret", "CODEX_API_KEY": "secret",
             "OPENAI_BASE_URL": "https://untrusted.invalid", "CODEX_CONFIG": "hostile",
             "CHATGPT_BASE_URL": "https://untrusted.invalid", "NODE_OPTIONS": "--require=evil",
-            "ASSEMBLYAI_API_KEY": "secret", "AUDIOBOOKSHELF_TOKEN": "secret",
+            "ELEVENLABS_API_KEY": "secret", "AUDIOBOOKSHELF_TOKEN": "secret",
         }, clear=True):
             self.assertEqual(codex._environment(), {
                 "HOME": "/login-home", "PATH": "/bin", "CODEX_HOME": "/cached-auth",

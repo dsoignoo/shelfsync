@@ -19,7 +19,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py codex_provider.py assemblyai_provider.py ./
+COPY app.py codex_provider.py elevenlabs_provider.py ./
 COPY static/ static/
 
 ENV CODEX_HOME=/home/shelfsync/.codex DATA_DIR=/data

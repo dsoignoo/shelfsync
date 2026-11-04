@@ -29,7 +29,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
-from assemblyai_provider import AssemblyAIError, transcribe_segment
+from elevenlabs_provider import ElevenLabsError, transcribe_segment
 from codex_provider import CodexError, generate_text
 
 # ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ from codex_provider import CodexError, generate_text
 # ---------------------------------------------------------------------------
 ABS_URL = os.getenv("AUDIOBOOKSHELF_URL", "http://localhost:13378")
 ABS_TOKEN = os.getenv("AUDIOBOOKSHELF_TOKEN", "")
-ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY", "")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 SUMMARY_LANGUAGE = os.getenv("SUMMARY_LANGUAGE", "de")
 DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))
 DEFAULT_WORDS_PER_PAGE = 250
@@ -1292,8 +1292,8 @@ async def audio_sync(item_id: str, req: AudioSyncRequest):
     Stores results persistently in calibration.json. Only needs to run once per book.
     """
     # Pre-checks
-    if not ASSEMBLYAI_API_KEY:
-        raise HTTPException(status_code=503, detail="ASSEMBLYAI_API_KEY is not configured")
+    if not ELEVENLABS_API_KEY:
+        raise HTTPException(status_code=503, detail="ELEVENLABS_API_KEY is not configured")
     if not shutil.which("ffmpeg"):
         raise HTTPException(status_code=422,
                             detail="ffmpeg nicht gefunden. Bitte installieren: apt install ffmpeg")
@@ -1392,8 +1392,8 @@ async def audio_sync(item_id: str, req: AudioSyncRequest):
         }
 
     except TimeoutError:
-        raise HTTPException(status_code=504, detail="AssemblyAI transcription timed out")
-    except AssemblyAIError as exc:
+        raise HTTPException(status_code=504, detail="ElevenLabs transcription timed out")
+    except ElevenLabsError as exc:
         raise HTTPException(status_code=502, detail=str(exc))
     finally:
         _cleanup_audio_temp(item_id)

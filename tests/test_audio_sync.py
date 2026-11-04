@@ -8,13 +8,13 @@ from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
 import app
-from assemblyai_provider import AssemblyAIError
+from elevenlabs_provider import ElevenLabsError
 
 
 class AudioSyncTests(unittest.TestCase):
     def test_failed_recalibration_preserves_previous_anchors(self):
         old = [{"audio_seconds": 15, "char_position": 30, "confidence": 0.9}]
-        for failure, status in ((AssemblyAIError("Provider unavailable"), 502),
+        for failure, status in ((ElevenLabsError("Provider unavailable"), 502),
                                 (TimeoutError(), 504), (None, 422)):
             with self.subTest(status=status), tempfile.TemporaryDirectory() as directory:
                 data = Path(directory)
@@ -23,7 +23,7 @@ class AudioSyncTests(unittest.TestCase):
                 }))
                 transcripts = AsyncMock(side_effect=failure) if failure else AsyncMock(return_value=[None] * 3)
                 with patch.object(app, "DATA_DIR", data), \
-                     patch.object(app, "ASSEMBLYAI_API_KEY", "test-key"), \
+                     patch.object(app, "ELEVENLABS_API_KEY", "test-key"), \
                      patch.object(app.shutil, "which", return_value="/usr/bin/ffmpeg"), \
                      patch.object(app, "get_epub_chapters", AsyncMock(return_value=(
                          [{"text": "A letter arrived at the lighthouse."}], [], 60))), \
@@ -52,7 +52,7 @@ class AudioBatchTests(unittest.IsolatedAsyncioTestCase):
         async def transcribe(client, path, language):
             if path.name == 'fail.mp3':
                 await started.wait()
-                raise AssemblyAIError("Provider unavailable")
+                raise ElevenLabsError("Provider unavailable")
             started.set()
             try:
                 await asyncio.Event().wait()
@@ -61,7 +61,7 @@ class AudioBatchTests(unittest.IsolatedAsyncioTestCase):
 
         with patch.object(app, "_client", return_value=object()), \
              patch.object(app, "transcribe_segment", side_effect=transcribe):
-            with self.assertRaises(AssemblyAIError):
+            with self.assertRaises(ElevenLabsError):
                 await app._transcribe_all([Path('fail.mp3'), Path('waiting.mp3')], 'en')
         self.assertTrue(cancelled.is_set())
 
