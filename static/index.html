@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
@@ -387,19 +387,19 @@
     <div class="header">
         <div class="header-icon">🔗</div>
         <h1>ShelfSync</h1>
-        <div class="status-pill"><div class="status-dot checking" id="sDot"></div><span id="sTxt">Verbinde…</span></div>
+        <div class="status-pill"><div class="status-dot checking" id="sDot"></div><span id="sTxt">Connecting…</span></div>
     </div>
 
     <!-- Currently Reading section -->
     <div id="crSection">
-        <div class="sl" style="padding:.4rem 0">Lese ich gerade</div>
+        <div class="sl" style="padding:.4rem 0">Currently reading</div>
         <div id="crList"></div>
-        <div id="crEmpty" class="books-loading" style="display:none;padding:.8rem 0;font-size:.82rem">Noch keine Bücher ausgewählt. Tippe unten auf ein Buch.</div>
+        <div id="crEmpty" class="books-loading" style="display:none;padding:.8rem 0;font-size:.82rem">No books selected yet. Choose a book below.</div>
     </div>
 
     <!-- Library toggle -->
     <button class="lib-toggle" id="libToggle" onclick="toggleLibrary()">
-        <span id="libToggleText">Bibliothek anzeigen</span>
+        <span id="libToggleText">Show library</span>
         <span class="lib-toggle-arrow" id="libArrow">&#x25BE;</span>
     </button>
 
@@ -407,10 +407,10 @@
     <div id="libSection" style="display:none;flex:1;overflow:hidden;flex-direction:column">
         <div class="search-wrap">
             <span class="search-icon">🔍</span>
-            <input type="text" class="book-search" id="bSearch" placeholder="Suche nach Titel oder Autor..." oninput="filterBooks()">
+            <input type="text" class="book-search" id="bSearch" placeholder="Search by title or author..." oninput="filterBooks()">
         </div>
         <div class="book-list" id="bList">
-            <div class="books-loading">Lade Bibliothek…</div>
+            <div class="books-loading">Loading library…</div>
         </div>
     </div>
 </div>
@@ -426,39 +426,39 @@
             <div class="sheet-author" id="sheetAuthor"></div>
         </div>
         <button class="sheet-reading-btn" id="sheetReadingBtn" onclick="toggleCurrentlyReading()">
-            📖 Lese ich
+            📖 Reading
         </button>
     </div>
     <div class="sheet-body">
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="sTab('position')">📍 Position</button>
-            <button class="tab" onclick="sTab('find')">🔍 Finden</button>
+            <button class="tab" onclick="sTab('find')">🔍 Find</button>
             <button class="tab" onclick="sTab('recap')">📝 Recap</button>
         </div>
 
         <!-- TAB: Position -->
         <div class="tc active" id="t-position">
             <div class="pos-box" id="posBox">
-                <div class="sl" style="margin-bottom:.6rem">Aktuelle Position</div>
+                <div class="sl" style="margin-bottom:.6rem">Current position</div>
                 <div class="pos-row">
-                    <div class="pos-item"><div class="pos-value" id="pPage">–</div><div class="pos-label">Seite</div></div>
-                    <div class="pos-item"><div class="pos-value" id="pPct">–</div><div class="pos-label">Prozent</div></div>
+                    <div class="pos-item"><div class="pos-value" id="pPage">–</div><div class="pos-label">Page</div></div>
+                    <div class="pos-item"><div class="pos-value" id="pPct">–</div><div class="pos-label">Percentage</div></div>
                 </div>
                 <div class="pos-chapter" id="pChName"></div>
                 <div class="pos-nearby" id="pNear"></div>
                 <div class="pos-cal-status" id="pCalStatus"></div>
                 <div style="margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--border)">
                     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem">
-                        <span style="font-size:.75rem;color:var(--text-muted)">Kindle-Seiten gesamt:</span>
-                        <input type="number" id="pKindlePages" min="1" placeholder="z.B. 375" style="width:80px;padding:.35rem .5rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:.82rem;text-align:center;outline:none">
-                        <button onclick="saveKindlePages()" style="padding:.35rem .7rem;background:var(--accent);color:var(--bg);border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:.75rem;cursor:pointer;font-weight:500">Setzen</button>
-                        <span id="pKindleOk" style="font-size:.72rem;color:var(--green);display:none">Gespeichert</span>
+                        <span style="font-size:.75rem;color:var(--text-muted)">Total Kindle pages:</span>
+                        <input type="number" id="pKindlePages" min="1" placeholder="e.g. 375" style="width:80px;padding:.35rem .5rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:.82rem;text-align:center;outline:none">
+                        <button onclick="saveKindlePages()" style="padding:.35rem .7rem;background:var(--accent);color:var(--bg);border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:.75rem;cursor:pointer;font-weight:500">Save</button>
+                        <span id="pKindleOk" style="font-size:.72rem;color:var(--green);display:none">Saved</span>
                     </div>
                     <div id="pKindleCalibrateRow" style="display:none;align-items:center;gap:.5rem;flex-wrap:wrap">
-                        <span style="font-size:.75rem;color:var(--text-muted)">Aktuelle Kindle-Seite:</span>
-                        <input type="number" id="pKindleCurPage" min="1" placeholder="Seite jetzt" style="width:90px;padding:.35rem .5rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:.82rem;text-align:center;outline:none">
-                        <button onclick="calibrateKindle()" style="padding:.35rem .7rem;background:var(--accent);color:var(--bg);border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:.75rem;cursor:pointer;font-weight:500">Abgleichen</button>
+                        <span style="font-size:.75rem;color:var(--text-muted)">Current Kindle page:</span>
+                        <input type="number" id="pKindleCurPage" min="1" placeholder="Current page" style="width:90px;padding:.35rem .5rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:.82rem;text-align:center;outline:none">
+                        <button onclick="calibrateKindle()" style="padding:.35rem .7rem;background:var(--accent);color:var(--bg);border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:.75rem;cursor:pointer;font-weight:500">Calibrate</button>
                         <span id="pCalOk" style="font-size:.72rem;color:var(--green);display:none"></span>
                     </div>
                     <div id="pCalInfo" style="display:none;margin-top:.3rem;font-size:.7rem;color:var(--text-muted)"></div>
@@ -469,32 +469,33 @@
             <div class="cal-panel" id="calPanel">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
                     <div class="sl" style="margin-bottom:0">Audio-Sync</div>
-                    <button class="audio-edit-btn" id="audioEditBtn" onclick="toggleAudioConfig()" style="display:none" title="Konfiguration bearbeiten">&#9998;</button>
+                    <button class="audio-edit-btn" id="audioEditBtn" onclick="toggleAudioConfig()" style="display:none" title="Edit configuration">&#9998;</button>
                 </div>
                 <div id="audioStatus" style="margin-bottom:.6rem"></div>
                 <div id="audioConfig">
-                    <p class="cal-hint" style="margin-bottom:.6rem">Transkribiert kurze Audio-Segmente mit ElevenLabs und findet sie im EPUB-Text. Abrechnung über dein ElevenLabs-Konto.</p>
+                    <p class="cal-hint" style="margin-bottom:.6rem">Transcribes short audio clips with ElevenLabs and matches them to the EPUB. Billed to your ElevenLabs account.</p>
                     <div class="cal-row" style="gap:.4rem;flex-wrap:wrap">
-                        <select class="cal-input" id="audioLang" style="width:auto">
-                            <option value="de">Deutsch</option>
+                        <label class="cal-hint" for="audioLang">Audio language</label>
+                        <select class="cal-input" id="audioLang" style="width:auto" aria-label="Audiobook language" title="Audiobook language">
+                            <option value="de">German</option>
                             <option value="en">English</option>
-                            <option value="fr">Français</option>
-                            <option value="es">Español</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
                         </select>
-                        <input type="number" class="cal-input" id="audioSamples" value="10" min="3" max="20" style="width:60px" title="Anzahl Samples">
+                        <input type="number" class="cal-input" id="audioSamples" value="10" min="3" max="20" style="width:60px" title="Number of samples">
                         <span class="cal-hint">Samples</span>
-                        <button class="cal-btn" id="audioStartBtn" onclick="startAudioSync()">Auto-Sync starten</button>
-                        <button class="cal-btn danger" id="audioDeleteBtn" onclick="deleteAudioSync()" style="display:none">Löschen</button>
+                        <button class="cal-btn" id="audioStartBtn" onclick="startAudioSync()">Start Auto-Sync</button>
+                        <button class="cal-btn danger" id="audioDeleteBtn" onclick="deleteAudioSync()" style="display:none">Delete</button>
                     </div>
                 </div>
                 <div id="audioProgress" style="display:none;margin-top:.6rem">
                     <div style="display:flex;align-items:center;gap:.5rem">
                         <div class="status-dot checking"></div>
-                        <span id="audioProgressText" style="font-size:.82rem;color:var(--text-muted)">Starte...</span>
+                        <span id="audioProgressText" style="font-size:.82rem;color:var(--text-muted)">Starting...</span>
                     </div>
                 </div>
                 <details id="audioDetails" style="display:none;margin-top:.6rem">
-                    <summary style="cursor:pointer;font-size:.8rem;color:var(--text-muted);min-height:44px;display:flex;align-items:center">Ankerpunkte anzeigen</summary>
+                    <summary style="cursor:pointer;font-size:.8rem;color:var(--text-muted);min-height:44px;display:flex;align-items:center">Show anchor points</summary>
                     <div id="audioResult" style="margin-top:.4rem"></div>
                 </details>
                 <div class="cal-result" id="calRes"></div>
@@ -504,29 +505,29 @@
         <!-- TAB: Recap -->
         <div class="tc" id="t-recap">
             <div class="card">
-                <div class="sl" style="margin-bottom:.6rem">Zeitraum</div>
+                <div class="sl" style="margin-bottom:.6rem">Time range</div>
                 <div class="time-row">
-                    <div class="time-group"><label>Von</label><div style="display:flex;align-items:center;gap:.3rem"><input type="number" class="ti" id="sH" min="0" value="0" style="width:60px"><span class="tc2">:</span><input type="number" class="ti" id="sM" min="0" max="59" value="0" style="width:60px"></div><span class="th">Std:Min</span></div>
-                    <div class="time-group"><label>Bis</label><div style="display:flex;align-items:center;gap:.3rem"><input type="number" class="ti" id="eH" min="0" value="0" style="width:60px"><span class="tc2">:</span><input type="number" class="ti" id="eM" min="0" max="59" value="10" style="width:60px"></div><span class="th">Std:Min</span></div>
+                    <div class="time-group"><label>From</label><div style="display:flex;align-items:center;gap:.3rem"><input type="number" class="ti" id="sH" min="0" value="0" style="width:60px"><span class="tc2">:</span><input type="number" class="ti" id="sM" min="0" max="59" value="0" style="width:60px"></div><span class="th">hr:min</span></div>
+                    <div class="time-group"><label>To</label><div style="display:flex;align-items:center;gap:.3rem"><input type="number" class="ti" id="eH" min="0" value="0" style="width:60px"><span class="tc2">:</span><input type="number" class="ti" id="eM" min="0" max="59" value="10" style="width:60px"></div><span class="th">hr:min</span></div>
                 </div>
-                <div class="sl" style="margin-top:.3rem;margin-bottom:.4rem">Schnellauswahl</div>
+                <div class="sl" style="margin-top:.3rem;margin-bottom:.4rem">Quick selection</div>
                 <div class="qr">
                     <button class="qb" onclick="qr(5)">5 min</button><button class="qb" onclick="qr(10)">10 min</button><button class="qb" onclick="qr(15)">15 min</button><button class="qb" onclick="qr(20)">20 min</button><button class="qb" onclick="qr(30)">30 min</button>
                 </div>
             </div>
-            <div class="sl">Stil</div>
+            <div class="sl">Style</div>
             <div class="sr">
-                <button class="so selected" data-s="concise" onclick="ss(this)">🎯 Kurz</button>
-                <button class="so" data-s="detailed" onclick="ss(this)">📖 Ausführlich</button>
-                <button class="so" data-s="bullet" onclick="ss(this)">📋 Stichpunkte</button>
+                <button class="so selected" data-s="concise" onclick="ss(this)">🎯 Concise</button>
+                <button class="so" data-s="detailed" onclick="ss(this)">📖 Detailed</button>
+                <button class="so" data-s="bullet" onclick="ss(this)">📋 Bullet points</button>
             </div>
-            <button class="btn btn-a" id="rBtn" onclick="doRecap()">Zusammenfassung erstellen</button>
-            <div class="loader" id="rLoad"><div class="lw"><span></span><span></span><span></span><span></span><span></span></div><div class="lt" id="rLT">EPUB laden…</div></div>
+            <button class="btn btn-a" id="rBtn" onclick="doRecap()">Create recap</button>
+            <div class="loader" id="rLoad"><div class="lw"><span></span><span></span><span></span><span></span><span></span></div><div class="lt" id="rLT">Loading EPUB…</div></div>
             <div class="err" id="rErr"></div>
             <div class="result" id="rRes">
-                <div class="rc"><div class="rh"><h3>📝 Zusammenfassung</h3><div class="rb2"><span class="rb3" id="rCost"></span></div></div>
+                <div class="rc"><div class="rh"><h3>📝 Recap</h3><div class="rb2"><span class="rb3" id="rCost"></span></div></div>
                 <div class="rbody"><div class="rch" id="rCh"></div><div class="st" id="rSum"></div>
-                <div class="tt"><button class="tb" onclick="tog(this,'rTx')"><span class="arrow">›</span> Text anzeigen</button><div class="txc" id="rTx"></div></div></div></div>
+                <div class="tt"><button class="tb" onclick="tog(this,'rTx')"><span class="arrow">›</span> Show excerpt</button><div class="txc" id="rTx"></div></div></div></div>
             </div>
         </div>
 
@@ -534,34 +535,34 @@
         <div class="tc" id="t-find">
             <div class="card">
                 <div class="ocr-header">
-                    <div class="sl" style="margin-bottom:0">Textstelle eingeben</div>
-                    <button class="ocr-btn" id="ocrBtn" onclick="$('#ocrInput').click()" title="Foto von Buchseite aufnehmen">
+                    <div class="sl" style="margin-bottom:0">Enter a passage</div>
+                    <button class="ocr-btn" id="ocrBtn" onclick="$('#ocrInput').click()" title="Take a photo of a book page">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                        <span>Foto</span>
+                        <span>Photo</span>
                     </button>
                     <input type="file" id="ocrInput" accept="image/*" capture="environment" style="display:none" onchange="doOCR(this)">
                 </div>
                 <div class="ocr-status" id="ocrStatus"></div>
-                <textarea class="fi" id="fTxt" placeholder="Einen Satz aus dem Kindle eingeben…"></textarea>
-                <div class="fo">— oder —</div>
-                <div class="sl" style="margin-bottom:.3rem">Seitenzahl eingeben</div>
+                <textarea class="fi" id="fTxt" placeholder="Enter a sentence from your Kindle…"></textarea>
+                <div class="fo">— or —</div>
+                <div class="sl" style="margin-bottom:.3rem">Enter a page number</div>
                 <div class="pi-row">
-                    <span style="color:var(--text-muted);font-size:.85rem">Seite</span>
+                    <span style="color:var(--text-muted);font-size:.85rem">Page</span>
                     <input type="number" class="pi" id="fPg" min="1" placeholder="42">
                     <span style="color:var(--text-muted);font-size:.78rem" id="pgTotal"></span>
                 </div>
             </div>
-            <button class="btn btn-b" id="fBtn" onclick="doFind()">Audiostelle finden</button>
-            <div class="loader" id="fLoad"><div class="lw"><span></span><span></span><span></span><span></span><span></span></div><div class="lt">Suche…</div></div>
+            <button class="btn btn-b" id="fBtn" onclick="doFind()">Find audio position</button>
+            <div class="loader" id="fLoad"><div class="lw"><span></span><span></span><span></span><span></span><span></span></div><div class="lt">Searching…</div></div>
             <div class="err" id="fErr"></div>
             <div class="frc" id="fRes">
                 <div class="frd">
-                    <div class="sl">Audio-Position</div>
+                    <div class="sl">Audio position</div>
                     <div class="fts" id="fTs"></div>
                     <div class="fm" id="fMeta"></div>
                     <div class="fc" id="fCtx"></div>
-                    <button class="sb" id="sBtn" onclick="doSync()">↻ Position in Audiobookshelf setzen</button>
-                    <div class="ss" id="sStat">✓ Position aktualisiert!</div>
+                    <button class="sb" id="sBtn" onclick="doSync()">↻ Set position in Audiobookshelf</button>
+                    <div class="ss" id="sStat">✓ Position updated!</div>
                 </div>
             </div>
         </div>
@@ -578,7 +579,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
         books=r.books||[];
         renderCR();
         renderBooks();
-        st('on',`${books.length} Bücher`);
+        st('on',`${books.length} book${books.length===1?'':'s'}`);
         // Fetch full info (details + position) for all currently-reading books
         const crBooks=books.filter(b=>b.is_currently_reading);
         if(crBooks.length){
@@ -626,14 +627,14 @@ function renderCR(){
 
         if(dc&&dc.position){
             const detail=document.createElement('div');detail.className='cr-detail';
-            let detailText='S. '+dc.position.estimated_page+'/'+dc.position.total_pages+' · '+dc.position.percentage+'%';
+            let detailText='p. '+dc.position.estimated_page+'/'+dc.position.total_pages+' · '+dc.position.percentage+'%';
             if(dc.position.chapter_title) detailText+=' · '+dc.position.chapter_title;
-            if(dc.is_calibrated) detailText+=' · Sync aktiv';
+            if(dc.is_calibrated) detailText+=' · Sync active';
             detail.textContent=detailText;
             info.appendChild(detail);
         }else if(dc&&!dc.position){
             const detail=document.createElement('div');detail.className='cr-detail';
-            detail.textContent='Lade Lesefortschritt…';
+            detail.textContent='Loading reading progress…';
             info.appendChild(detail);
         }
         card.appendChild(info);
@@ -652,11 +653,11 @@ function toggleLibrary(){
     if(libOpen){
         sec.style.display='flex';
         btn.classList.add('open');
-        $('#libToggleText').textContent='Bibliothek ausblenden';
+        $('#libToggleText').textContent='Hide library';
     }else{
         sec.style.display='none';
         btn.classList.remove('open');
-        $('#libToggleText').textContent='Bibliothek anzeigen';
+        $('#libToggleText').textContent='Show library';
     }
 }
 
@@ -717,8 +718,8 @@ function getFilteredBooks(){
 function renderBooks(){
     const l=$('#bList');
     const fb=getFilteredBooks();
-    if(!books.length){l.textContent='';const d=document.createElement('div');d.className='books-loading';d.textContent='Keine Bücher';l.appendChild(d);return}
-    if(!fb.length){l.textContent='';const d=document.createElement('div');d.className='books-loading';d.textContent='Keine weiteren Bücher';l.appendChild(d);return}
+    if(!books.length){l.textContent='';const d=document.createElement('div');d.className='books-loading';d.textContent='No books';l.appendChild(d);return}
+    if(!fb.length){l.textContent='';const d=document.createElement('div');d.className='books-loading';d.textContent='No more books';l.appendChild(d);return}
     l.textContent='';
     fb.forEach(b=>{
         const dc=detailsCache[b.id];
@@ -805,10 +806,10 @@ async function loadPos(){
         $('#pChName').textContent=d.chapter_title?'📖 '+d.chapter_title:'';
         $('#pNear').textContent=d.nearby_text?'\u201E'+d.nearby_text+'\u201C':'';
         $('#pCalStatus').innerHTML=d.mapping_quality==='audio'
-            ?'<span class="badge badge-green">Audio-Sync aktiv</span>'
-            :'<span class="badge" style="background:#c62828;color:#fff">Kein Audio-Sync</span>';
+            ?'<span class="badge badge-green">Audio-Sync active</span>'
+            :'<span class="badge" style="background:#c62828;color:#fff">No Audio-Sync</span>';
         $('#posBox').classList.add('visible');
-        $('#pgTotal').textContent='von '+d.total_pages;
+        $('#pgTotal').textContent='of '+d.total_pages;
         // Load stored Kindle settings
         try{
             const kp=await(await fetch('/api/books/'+encodeURIComponent(sel.id)+'/kindle-pages')).json();
@@ -822,7 +823,7 @@ async function loadPos(){
             const pts=kp.kindle_calibration_points||[];
             if(pts.length>0){
                 $('#pCalInfo').style.display='';
-                $('#pCalInfo').textContent=pts.length+' Kalibrierungspunkt'+(pts.length>1?'e':'')+' gespeichert';
+                $('#pCalInfo').textContent=pts.length+' calibration point'+(pts.length===1?'':'s')+' saved';
             }else{
                 $('#pCalInfo').style.display='none';
             }
@@ -854,7 +855,7 @@ async function calibrateKindle(){
             body:JSON.stringify({current_kindle_page:page,current_time_seconds:sel.current_time})
         })).json();
         $('#pCalOk').style.display='';
-        $('#pCalOk').textContent='Kalibriert ('+r.total_points+' Punkt'+(r.total_points>1?'e':'')+')';
+        $('#pCalOk').textContent='Calibrated ('+r.total_points+' point'+(r.total_points===1?'':'s')+')';
         setTimeout(()=>$('#pCalOk').style.display='none',3000);
         if(detailsCache[sel.id]) delete detailsCache[sel.id].position;
         loadPos();
@@ -874,33 +875,33 @@ function gm(p){return(parseInt($('#'+p+'H').value)||0)*60+(parseInt($('#'+p+'M')
 
 async function doRecap(){
     if(!sel)return;const sm=gm('s'),em=gm('e');
-    if(em<=sm){se('rErr','End > Start');return}
-    he('rErr');$('#rRes').classList.remove('visible');$('#rLoad').classList.add('visible');$('#rBtn').disabled=true;$('#rBtn').textContent='Erstelle…';
-    const steps=['EPUB laden…','Text extrahieren…','Zusammenfassung…'];let si=0;
+    if(em<=sm){se('rErr','End time must be later than start time');return}
+    he('rErr');$('#rRes').classList.remove('visible');$('#rLoad').classList.add('visible');$('#rBtn').disabled=true;$('#rBtn').textContent='Creating…';
+    const steps=['Loading EPUB…','Extracting text…','Creating recap…'];let si=0;
     const iv=setInterval(()=>{si=Math.min(si+1,2);$('#rLT').textContent=steps[si]},3000);
     try{
         const r=await fetch('/api/recap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({library_item_id:sel.id,start_minutes:sm,end_minutes:em,summary_style:style})});
-        clearInterval(iv);if(!r.ok){const e=await r.json().catch(()=>({detail:'Fehler'}));throw new Error(e.detail)}
+        clearInterval(iv);if(!r.ok){const e=await r.json().catch(()=>({detail:'Error'}));throw new Error(e.detail)}
         const d=await r.json();
-        $('#rSum').textContent=d.summary;$('#rTx').textContent=d.text_excerpt;$('#rCost').textContent='Codex-Abo · Nutzungslimits gelten';
+        $('#rSum').textContent=d.summary;$('#rTx').textContent=d.text_excerpt;$('#rCost').textContent='Codex subscription · usage limits apply';
         $('#rCh').innerHTML=(d.chapters_covered||[]).map(c=>'<span class="rct">'+esc(c)+'</span>').join('');
         $('#rRes').classList.add('visible');
     }catch(e){clearInterval(iv);se('rErr',e.message)}
-    finally{$('#rLoad').classList.remove('visible');$('#rBtn').disabled=false;$('#rBtn').textContent='Zusammenfassung erstellen'}
+    finally{$('#rLoad').classList.remove('visible');$('#rBtn').disabled=false;$('#rBtn').textContent='Create recap'}
 }
 
 async function doFind(){
     if(!sel)return;const t=$('#fTxt').value.trim(),p=parseInt($('#fPg').value);
-    if(!t&&!p){se('fErr','Text oder Seitenzahl eingeben');return}
+    if(!t&&!p){se('fErr','Enter text or a page number');return}
     he('fErr');$('#fRes').classList.remove('visible');$('#fLoad').classList.add('visible');$('#fBtn').disabled=true;
     try{
         let d;
         if(t){const r=await fetch('/api/find-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({library_item_id:sel.id,query:t})});
-            if(!r.ok){const e=await r.json().catch(()=>({detail:'Fehler'}));throw new Error(e.detail)}d=await r.json();
-            $('#fTs').textContent=d.audio_timestamp_formatted;$('#fMeta').textContent=d.chapter_title+' \u00b7 '+(d.confidence==='exact'?'Exakt':'Ungefähr');$('#fCtx').innerHTML=hl(d.context,t);
+            if(!r.ok){const e=await r.json().catch(()=>({detail:'Error'}));throw new Error(e.detail)}d=await r.json();
+            $('#fTs').textContent=d.audio_timestamp_formatted;$('#fMeta').textContent=d.chapter_title+' \u00b7 '+(d.confidence==='exact'?'Exact':'Approximate');$('#fCtx').innerHTML=hl(d.context,t);
         }else{const r=await fetch('/api/page-to-audio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({library_item_id:sel.id,page_number:p})});
-            if(!r.ok){const e=await r.json().catch(()=>({detail:'Fehler'}));throw new Error(e.detail)}d=await r.json();
-            $('#fTs').textContent=d.audio_timestamp_formatted;$('#fMeta').textContent=d.chapter_title+' \u00b7 Seite '+p;$('#fCtx').textContent=d.nearby_text?'\u201E'+d.nearby_text+'\u201C':''}
+            if(!r.ok){const e=await r.json().catch(()=>({detail:'Error'}));throw new Error(e.detail)}d=await r.json();
+            $('#fTs').textContent=d.audio_timestamp_formatted;$('#fMeta').textContent=d.chapter_title+' \u00b7 Page '+p;$('#fCtx').textContent=d.nearby_text?'\u201E'+d.nearby_text+'\u201C':''}
         lastTs=d.audio_timestamp_seconds;$('#sStat').classList.remove('visible');$('#fRes').classList.add('visible');
     }catch(e){se('fErr',e.message)}finally{$('#fLoad').classList.remove('visible');$('#fBtn').disabled=false}
 }
@@ -911,17 +912,17 @@ async function doOCR(input){
     if(!file)return;
     const st=$('#ocrStatus');
     st.className='ocr-status visible';
-    st.innerHTML='<div class="ocr-spinner"></div>Text wird erkannt…';
+    st.innerHTML='<div class="ocr-spinner"></div>Recognizing text…';
     $('#ocrBtn').disabled=true;
     try{
         const b64=await new Promise((res,rej)=>{
             const r=new FileReader();
             r.onload=()=>res(r.result);
-            r.onerror=()=>rej(new Error('Datei konnte nicht gelesen werden'));
+            r.onerror=()=>rej(new Error('Could not read the file'));
             r.readAsDataURL(file);
         });
         const r=await fetch('/api/ocr',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:b64})});
-        if(!r.ok){const e=await r.json().catch(()=>({detail:'OCR fehlgeschlagen'}));throw new Error(e.detail)}
+        if(!r.ok){const e=await r.json().catch(()=>({detail:'OCR failed'}));throw new Error(e.detail)}
         const d=await r.json();
         $('#fTxt').value=d.text;
         $('#fTxt').focus();
@@ -938,7 +939,7 @@ function hl(ctx,q){if(!q)return esc(ctx);const i=ctx.toLowerCase().indexOf(q.toL
 async function doSync(){
     if(!sel||lastTs===null)return;$('#sBtn').disabled=true;
     try{const r=await fetch('/api/sync-progress?library_item_id='+sel.id+'&time_seconds='+lastTs,{method:'POST'});
-        if(!r.ok)throw new Error('Sync fehlgeschlagen');$('#sStat').classList.add('visible');sel.current_time=lastTs;loadPos();
+        if(!r.ok)throw new Error('Sync failed');$('#sStat').classList.add('visible');sel.current_time=lastTs;loadPos();
     }catch(e){se('fErr',e.message)}finally{$('#sBtn').disabled=false}
 }
 
@@ -952,7 +953,7 @@ function toggleAudioConfig(){
     const isHidden=cfg.style.display==='none';
     cfg.style.display=isHidden?'':'none';
     $('#audioEditBtn').textContent=isHidden?'\u2716':'\u270E';
-    $('#audioEditBtn').title=isHidden?'Konfiguration schließen':'Konfiguration bearbeiten';
+    $('#audioEditBtn').title=isHidden?'Close configuration':'Edit configuration';
 }
 
 async function loadAudioStatus(){
@@ -966,14 +967,14 @@ async function loadAudioStatus(){
         const d=await r.json();
         const wa=d.audio_anchor_points||[];
         if(wa.length>0){
-            stEl.innerHTML='<span class="badge badge-green">Audio-Sync aktiv</span> <span class="cal-hint">'+wa.length+' Ankerpunkte</span>';
+            stEl.innerHTML='<span class="badge badge-green">Audio-Sync active</span> <span class="cal-hint">'+wa.length+' anchor point'+(wa.length===1?'':'s')+'</span>';
             db.style.display='';
-            btn.textContent='Neu starten';
+            btn.textContent='Run again';
             cfg.style.display='none';
             editBtn.style.display='';
             editBtn.textContent='\u270E';
-            editBtn.title='Konfiguration bearbeiten';
-            let html='<div style="overflow-x:auto"><table style="width:100%;font-size:.78rem;border-collapse:collapse"><tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:.2rem .4rem">Zeit</th><th style="text-align:left;padding:.2rem .4rem">Conf.</th><th style="text-align:left;padding:.2rem .4rem">Text</th></tr>';
+            editBtn.title='Edit configuration';
+            let html='<div style="overflow-x:auto"><table style="width:100%;font-size:.78rem;border-collapse:collapse"><tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:.2rem .4rem">Time</th><th style="text-align:left;padding:.2rem .4rem">Confidence</th><th style="text-align:left;padding:.2rem .4rem">Text</th></tr>';
             wa.forEach(a=>{
                 const min=Math.floor(a.audio_seconds/60),sec=Math.round(a.audio_seconds%60);
                 const conf=a.confidence>=0.7?'badge-green':a.confidence>=0.5?'badge-amber':'';
@@ -982,8 +983,8 @@ async function loadAudioStatus(){
             html+='</table></div>';
             rb.innerHTML=html;det.style.display='';
         }else{
-            stEl.innerHTML='<span class="cal-hint">Noch kein Audio-Sync durchgeführt.</span>';
-            btn.textContent='Auto-Sync starten';
+            stEl.innerHTML='<span class="cal-hint">Audio-Sync has not been run yet.</span>';
+            btn.textContent='Start Auto-Sync';
             cfg.style.display='';
             editBtn.style.display='none';
         }
@@ -994,7 +995,7 @@ async function startAudioSync(){
     if(!sel)return;
     const btn=$('#audioStartBtn'),prog=$('#audioProgress'),pt=$('#audioProgressText'),det=$('#audioDetails');
     btn.disabled=true;prog.style.display='';det.style.display='none';
-    pt.textContent='Segmente werden transkribiert...';
+    pt.textContent='Transcribing audio clips...';
     try{
         const r=await fetch('/api/audio-sync/'+sel.id,{
             method:'POST',
@@ -1008,22 +1009,22 @@ async function startAudioSync(){
         const d=await r.json();
         prog.style.display='none';
         if(!r.ok){
-            $('#audioStatus').textContent='Fehler: '+(d.detail||'Unbekannt');
+            $('#audioStatus').textContent='Error: '+(d.detail||'Unknown');
             return;
         }
         if(detailsCache[sel.id])delete detailsCache[sel.id].position;
         loadAudioStatus();loadPos();
     }catch(e){
         prog.style.display='none';
-        $('#audioStatus').innerHTML='<span class="badge" style="background:#c0392b;color:#fff">Netzwerk-Fehler</span>';
+        $('#audioStatus').innerHTML='<span class="badge" style="background:#c0392b;color:#fff">Network error</span>';
     }finally{btn.disabled=false}
 }
 
 async function deleteAudioSync(){
-    if(!sel||!confirm('Audio-Ankerpunkte löschen?'))return;
+    if(!sel||!confirm('Delete audio anchor points?'))return;
     try{
         const r=await fetch('/api/audio-sync/'+sel.id,{method:'DELETE'});
-        if(!r.ok)throw new Error('Löschen fehlgeschlagen');
+        if(!r.ok)throw new Error('Could not delete calibration');
         if(detailsCache[sel.id])delete detailsCache[sel.id].position;
         loadAudioStatus();loadPos();
     }catch(e){$('#audioStatus').textContent=e.message}

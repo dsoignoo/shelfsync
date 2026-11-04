@@ -496,12 +496,12 @@ def _find_epub_chapter_at_char(epub_ch: list[dict], char_pos: int) -> tuple[str,
         ch_end = cum + e["char_count"]
         if char_pos <= ch_end:
             pct = (char_pos - cum) / max(e["char_count"], 1) * 100
-            return e.get("title", f"Kapitel {i + 1}"), max(0, min(100, pct))
+            return e.get("title", f"Chapter {i + 1}"), max(0, min(100, pct))
         cum = ch_end + 1  # +1 for space between chapters
     # Past the end
     if epub_ch:
-        return epub_ch[-1].get("title", f"Kapitel {len(epub_ch)}"), 100.0
-    return "(unbekannt)", 0.0
+        return epub_ch[-1].get("title", f"Chapter {len(epub_ch)}"), 100.0
+    return "(unknown)", 0.0
 
 
 def _time_to_char_position(
@@ -556,7 +556,7 @@ def _chapters_in_char_range(epub_ch, c_start: int, c_end: int) -> list[str]:
         ch_end = ch_start + e["char_count"]
         if ch_end > c_start and ch_start < c_end:
             names.append(e["title"])
-    return names if names else ["(unbekannt)"]
+    return names if names else ["(unknown)"]
 
 
 def map_time_to_text(
@@ -579,7 +579,7 @@ def map_time_to_text(
     if c1 < len(full):
         c1 = _snap_to_sentence_end(full, c1)
     text = full[c0:c1]
-    names = _chapters_in_char_range(epub_ch, c0, c1) if text.strip() else ["(geschätzt)"]
+    names = _chapters_in_char_range(epub_ch, c0, c1) if text.strip() else ["(estimated)"]
     return text, names
 
 
@@ -665,7 +665,7 @@ async def download_epub(item_id, ino):
     max_bytes = EPUB_MAX_SIZE_MB * 1024 * 1024
     if len(r.content) > max_bytes:
         raise HTTPException(status_code=413,
-                            detail=f"EPUB zu groß ({len(r.content) // 1024 // 1024} MB, max {EPUB_MAX_SIZE_MB} MB)")
+                            detail=f"EPUB too large ({len(r.content) // 1024 // 1024} MB, max {EPUB_MAX_SIZE_MB} MB)")
     return r.content
 
 
@@ -704,7 +704,7 @@ async def get_epub_chapters(item_id):
     duration = media.get("duration", 0)
     ef = _find_epub_file(item)
     if not ef:
-        raise HTTPException(status_code=400, detail="Kein EPUB gefunden.")
+        raise HTTPException(status_code=400, detail="No EPUB found.")
     # 1. LRU in-memory cache
     if item_id in _epub_cache:
         _epub_cache.move_to_end(item_id)
@@ -717,7 +717,7 @@ async def get_epub_chapters(item_id):
             eb = await download_epub(item_id, ef.get("ino", ef.get("metadata", {}).get("ino", "")))
             ec = extract_text_from_epub(eb)
             if not ec:
-                raise HTTPException(status_code=500, detail="EPUB-Text konnte nicht extrahiert werden")
+                raise HTTPException(status_code=500, detail="Could not extract text from the EPUB")
             _save_cached_epub_to_disk(item_id, ec)
         _epub_cache[item_id] = ec
         if len(_epub_cache) > 20:
@@ -1192,7 +1192,7 @@ async def reset_calibration(item_id: str):
 async def set_kindle_pages(item_id: str, pages: int):
     """Store the Kindle total page count for a book."""
     if pages < 1:
-        raise HTTPException(status_code=400, detail="Seitenzahl muss >= 1 sein")
+        raise HTTPException(status_code=400, detail="Page number must be at least 1")
     with _calibration_lock:
         cal_path = _calibration_path()
         cal = {}
@@ -1228,7 +1228,7 @@ class KindleCalibrateRequest(BaseModel):
 async def kindle_calibrate(item_id: str, req: KindleCalibrateRequest):
     """Store a calibration point mapping audio position to Kindle page number."""
     if req.current_kindle_page < 1:
-        raise HTTPException(status_code=400, detail="Seitenzahl muss >= 1 sein")
+        raise HTTPException(status_code=400, detail="Page number must be at least 1")
 
     # Calculate word fraction at current audio position
     ec, ac, dur = await get_epub_chapters(item_id)
@@ -1296,15 +1296,15 @@ async def audio_sync(item_id: str, req: AudioSyncRequest):
         raise HTTPException(status_code=503, detail="ELEVENLABS_API_KEY is not configured")
     if not shutil.which("ffmpeg"):
         raise HTTPException(status_code=422,
-                            detail="ffmpeg nicht gefunden. Bitte installieren: apt install ffmpeg")
+                            detail="ffmpeg was not found. Install it with: apt install ffmpeg")
 
     # Check if already done
     existing = get_audio_anchors(item_id)
     if existing and not req.force:
         return {
             "status": "exists",
-            "message": f"Audio-Sync bereits durchgeführt ({len(existing)} Ankerpunkte). "
-                       "force=true zum Erneuern.",
+            "message": f"Audio-Sync already completed ({len(existing)} anchors). "
+                       "Use force=true to recalibrate.",
             "anchors": existing,
         }
 
@@ -1312,14 +1312,14 @@ async def audio_sync(item_id: str, req: AudioSyncRequest):
     ec, ac, dur = await get_epub_chapters(item_id)
     full_text = _build_full_text(ec, item_id)
     if not full_text:
-        raise HTTPException(status_code=400, detail="EPUB-Text konnte nicht geladen werden")
+        raise HTTPException(status_code=400, detail="Could not load EPUB text")
 
     # Get audio files from ABS item details
     item = await get_item_details(item_id)
     media = item.get("media", {})
     audio_files = sorted(media.get("audioFiles", []), key=lambda f: f.get("index", 0))
     if not audio_files:
-        raise HTTPException(status_code=400, detail="Keine Audio-Dateien gefunden")
+        raise HTTPException(status_code=400, detail="No audio files found")
 
     # Select sample positions
     positions = _select_sample_positions(ac, dur, req.n_samples)
@@ -1501,13 +1501,13 @@ async def get_position(req: PositionRequest):
 async def create_recap(req: RecapRequest):
     ss, es = req.start_minutes * 60, req.end_minutes * 60
     d = es - ss
-    if d <= 0: raise HTTPException(status_code=400, detail="End > Start")
+    if d <= 0: raise HTTPException(status_code=400, detail="End time must be later than start time")
     if d > 7200: raise HTTPException(status_code=400, detail="Max 120 min")
     ec, ac, dur = await get_epub_chapters(req.library_item_id)
     total_dur = ac[-1].get("end", 0) if ac else dur
     text, names = map_time_to_text(ec, ss, es, total_dur, item_id=req.library_item_id)
     if not text or len(text.strip()) < 10:
-        raise HTTPException(status_code=400, detail="Kein Text gefunden")
+        raise HTTPException(status_code=400, detail="No text found")
     summary = await summarize_text(text, req.summary_style, SUMMARY_LANGUAGE)
     return RecapResponse(text_excerpt=text[:5000] + ("…" if len(text) > 5000 else ""),
                          summary=summary, chapters_covered=names,
@@ -1523,11 +1523,11 @@ async def ocr_image(req: OCRRequest):
         raw = raw.split(",", 1)[1]
     # Validate base64 length (max ~10 MB image)
     if len(raw) > 14_000_000:
-        raise HTTPException(status_code=400, detail="Bild zu groß (max 10 MB)")
+        raise HTTPException(status_code=400, detail="Image too large (max 10 MB)")
     try:
         image = base64.b64decode(raw, validate=True)
     except (ValueError, base64.binascii.Error):
-        raise HTTPException(status_code=400, detail="Ungültiges Bild")
+        raise HTTPException(status_code=400, detail="Invalid image")
     if image.startswith(b'\xff\xd8\xff'):
         suffix = ".jpg"
     elif image.startswith(b'\x89PNG\r\n\x1a\n'):
@@ -1544,7 +1544,7 @@ async def ocr_image(req: OCRRequest):
         "Read the attached book-page photo.",
         image=image, image_suffix=suffix)
     if text == "[NO_TEXT]":
-        raise HTTPException(status_code=422, detail="Kein Text erkannt")
+        raise HTTPException(status_code=422, detail="No text recognized")
     return OCRResponse(text=text)
 
 
@@ -1554,7 +1554,7 @@ async def find_text(req: TextSearchRequest):
     ec, ac, dur = await get_epub_chapters(req.library_item_id)
     full = _build_full_text(ec, req.library_item_id)
     q = req.query.strip()
-    if len(q) < 3: raise HTTPException(status_code=400, detail="Min 3 Zeichen")
+    if len(q) < 3: raise HTTPException(status_code=400, detail="Enter at least 3 characters")
     idx = full.lower().find(q.lower())
     conf = "exact"
     if idx == -1:
@@ -1568,7 +1568,7 @@ async def find_text(req: TextSearchRequest):
                     bi, bl = p, len(sub)
             if bi != -1: break
         if bi != -1: idx, conf = bi, "approximate"
-        else: raise HTTPException(status_code=404, detail="Text nicht gefunden")
+        else: raise HTTPException(status_code=404, detail="Text not found")
     ts, ct = _char_position_to_time(ec, idx, dur, item_id=req.library_item_id)
     cs, ce = max(0, idx - 80), min(len(full), idx + len(q) + 80)
     return TextSearchResponse(audio_timestamp_seconds=round(ts, 1),
@@ -1585,7 +1585,7 @@ async def page_to_audio(req: PageToAudioRequest):
     tw = sum(ch["word_count"] for ch in ec)
     tp = max(1, round(tw / wpp))
     if req.page_number < 1 or req.page_number > tp:
-        raise HTTPException(status_code=400, detail=f"Seite 1–{tp}")
+        raise HTTPException(status_code=400, detail=f"Page must be between 1 and {tp}")
     wt = (req.page_number - 1) * wpp
     wc, cp = 0, 0
     for i, ch in enumerate(full):

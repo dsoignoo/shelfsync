@@ -4,6 +4,8 @@ Self-hosted audiobook/eBook position matching for [Audiobookshelf](https://www.a
 
 **No OpenAI API key is required.** Recaps and book-photo OCR run through the official Codex CLI using your ChatGPT subscription login. Audio calibration uses ElevenLabs Scribe's speech-to-text API.
 
+The interface and user-facing API messages are in English. `SUMMARY_LANGUAGE` controls only generated recaps; choose the audiobook's spoken language separately in Audio-Sync. Book text and metadata are not translated.
+
 ## Features
 
 - **Audio → page / page → audio:** estimate the corresponding reading or listening position.
@@ -108,7 +110,7 @@ Codex uses `CODEX_HOME`, or `~/.codex` when unset. Use a dedicated login directo
 1. Open the library, add a book to Currently Reading, then open its card.
 2. In **Position**, enter your Kindle page count if desired.
 3. In **Audio-Sync**, select the book's language and start calibration. German, English, French, and Spanish are offered. This uses ElevenLabs Scribe v2, uploads only extracted clips, and stores matched anchors locally.
-4. In **Finden**, enter a passage, a page number, or upload a JPEG/PNG/WEBP book-page photo.
+4. In **Find**, enter a passage, a page number, or upload a JPEG/PNG/WEBP book-page photo.
 5. In **Recap**, select up to 120 minutes and choose a summary style. Long excerpts are split into bounded chunks, summarized sequentially, and merged.
 
 Audio-Sync uploads each clip as multipart audio and receives a synchronous transcript. Provider failures and timeouts are errors, not successful empty calibrations. If recalibration fails or no clips match, existing anchors are preserved. The UI reports subscription usage rather than estimating OpenAI API charges.
